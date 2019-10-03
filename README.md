@@ -299,6 +299,8 @@ The objective we provide sample test cases is making sure your scanner outputs i
 
 > **Disclaimer**: To receive full grade in this assignment, passing sample test cases is necessary but not sufficient. You should create more test cases in order to make sure your scanner handles all `Lexical Definition` in this assignment correctly.
 
+Please using `student_` as the prefix of your own tests to prevent TAs from overriding your files. For example: `student_identifier_test`.
+
 If you pass all test cases, you will get:
 
 ![all-pass example](./imgs/all-pass.png)
