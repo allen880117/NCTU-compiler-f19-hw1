@@ -6,4 +6,3 @@ begin
 	b:= 00123E4;
 	c:= "test";
 end
-
