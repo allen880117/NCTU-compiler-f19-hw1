@@ -26,10 +26,10 @@ OperatorAnd "and"
 OperatorOr  "or"
 OperatorNot "not"
 
-NumFloat (-?[1-9][0-9]*\.[0-9]+)|(-?0\.0)|(-?0\.[1-9][0-9]*)
-NumInteger (-?[1-9][0-9]*)|(-?0)
+NumInteger ([1-9][0-9]*)|(0)
+NumFloat ({NumInteger}\.[0-9]*[1-9])|(0\.0)
 NumScientific  ({NumFloat}|{NumInteger})[Ee][+|-]?{NumInteger}
-NumOctInteger   (-?0[0-7][0-7]*)
+NumOctInteger   (0[0-7][0-7]*)
 
 KWarray   "array"
 KWbegin   "begin"
