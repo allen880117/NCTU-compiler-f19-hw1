@@ -1,0 +1,57 @@
+1: // print hello world
+<KWbegin>
+2: begin
+<KWvar>
+<id: a>
+<:>
+<KWinteger>
+<;>
+3: var a : integer;
+<KWvar>
+<id: b>
+<:>
+<KWreal>
+<;>
+4: var b : real;
+<KWprint>
+<string: hello world>
+<;>
+5: print "hello world";
+<id: a>
+<:=>
+<integer: 1>
+<+>
+<integer: 1>
+<;>
+6: a := 1+1;
+<id: b>
+<:=>
+<float: 1.23>
+<;>
+7: b := 1.23;
+<KWif>
+<id: a>
+<>>
+<oct_integer: 01>
+<KWthen>
+8: if a > 01 then
+<id: b>
+<:=>
+<id: b>
+<*>
+<scientific: 1.23e-1>
+<;>
+9: b := b*1.23e-1;
+<id: a>
+<:=>
+<integer: 1>
+<;>
+12: //&S+
+13: //&T-
+14: a := 2;
+15: //&T+
+<KWend>
+<KWif>
+16: end if
+<KWend>
+17: end
