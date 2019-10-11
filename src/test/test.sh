@@ -5,7 +5,7 @@ green=`tput setaf 46`
 yellow=`tput setaf 226`
 red=`tput setaf 196`
 
-for filename in case1 case2 case3 case4 case5 error; 
+for filename in case1 case2 case3 case4 case5 case6 error; 
 do
     printf "${yellow}Running test case: ${cyan}$filename"
     ./$1 ./test/test-cases/$filename.p > $filename.result
