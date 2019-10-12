@@ -16,10 +16,14 @@ int Opt_S = 1;
 int Opt_T = 1;
 int linenum = 1;
 char buf[MAX_LINE_LENG];
-char stringBuf[MAX_LINE_LENG];
+char tempStringBuf[MAX_LINE_LENG];
+char StringBuf[MAX_LINE_LENG];
 %}
 
 %Start COMMENT ONE_LINE_COMMENT STRING
+
+Character [^\n^(\\\"))]*
+String \"{Character}((\"\"){Character})*\"
 
 OperatorMod "mod"
 OperatorAnd "and"
@@ -58,23 +62,22 @@ VariableName [a-zA-Z_][0-9a-zA-Z_]*
 
 %%
 
-<STRING>"\"\""     { 
-                     LIST; 
-                     strcat(stringBuf, "\""); 
-                   }
-<STRING>"\""       { 
-                     tokenString(string, stringBuf); 
-                     stringBuf[0]='\0'; 
-                     BEGIN INITIAL;
-                   }
-<STRING>[^\"^\n]+  { 
-                     LIST; 
-                     strcat(stringBuf, yytext); 
-                   }
-<INITIAL>"\""      { 
-                     LIST; 
-                     BEGIN STRING;
-                   }
+{String}  {
+            strncat(tempStringBuf, yytext+1, strlen(yytext)-2);
+            
+            int idx=0;
+            while(idx<strlen(tempStringBuf)){
+              strncat(StringBuf, tempStringBuf+idx, 1);
+              
+              if(tempStringBuf[idx]=='\"') idx+=2;
+              else idx++;
+            }
+            tokenString(string, StringBuf);
+            
+            tempStringBuf[0] = '\0';
+            StringBuf[0] = '\0';
+          }
+
 "//&S-"[.]*     { LIST; Opt_S = 0; } 
 "//&S+"[.]*     { LIST; Opt_S = 1; }
 "//&T-"[.]*     { LIST; Opt_T = 0; }
@@ -146,7 +149,7 @@ VariableName [a-zA-Z_][0-9a-zA-Z_]*
               linenum++;
               buf[0] = '\0';
             }
-[ \t]       { LIST; }     
+[ \t]+      { LIST; }     
 .           {
               /* error */
               printf("Error at line %d: bad character \"%s\"\n", linenum, yytext ); // WA : error -> Error
