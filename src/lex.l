@@ -22,7 +22,7 @@ char StringBuf[MAX_LINE_LENG];
 
 %Start COMMENT ONE_LINE_COMMENT STRING
 
-Character [^\n^(\\\"))]*
+Character [^\n^(\"))]*
 String \"{Character}((\"\"){Character})*\"
 
 OperatorMod "mod"
@@ -31,7 +31,7 @@ OperatorOr  "or"
 OperatorNot "not"
 
 NumInteger ([1-9][0-9]*)|(0)
-NumFloat ({NumInteger}\.[0-9]*[1-9])|(0\.0)
+NumFloat ({NumInteger}\.[0-9]*[1-9])|({NumInteger}\.0)
 NumScientific  ({NumFloat}|{NumInteger})[Ee][+|-]?{NumInteger}
 NumOctInteger   (0[0-7][0-7]*)
 
@@ -58,7 +58,7 @@ KWreturn  "return"
 KWvar     "var"
 KWwhile   "while"
 
-VariableName [a-zA-Z_][0-9a-zA-Z_]*
+VariableName [a-zA-Z][0-9a-zA-Z]*
 
 %%
 
@@ -78,10 +78,10 @@ VariableName [a-zA-Z_][0-9a-zA-Z_]*
             StringBuf[0] = '\0';
           }
 
-"//&S-"[.]*     { LIST; Opt_S = 0; } 
-"//&S+"[.]*     { LIST; Opt_S = 1; }
-"//&T-"[.]*     { LIST; Opt_T = 0; }
-"//&T+"[.]*     { LIST; Opt_T = 1; }
+"//&S-".*     { LIST; Opt_S = 0; } 
+"//&S+".*     { LIST; Opt_S = 1; }
+"//&T-".*     { LIST; Opt_T = 0; }
+"//&T+".*     { LIST; Opt_T = 1; }
 
 "//".*          { LIST; }
 "/*".*          { LIST; BEGIN COMMENT; }
@@ -140,6 +140,8 @@ VariableName [a-zA-Z_][0-9a-zA-Z_]*
 ":"         { tokenChar(':'); }
 "("         { tokenChar('('); }
 ")"         { tokenChar(')'); }
+"["         { tokenChar('['); }
+"]"         { tokenChar(']'); }
 
 <COMMENT>\n |
 \n          {
