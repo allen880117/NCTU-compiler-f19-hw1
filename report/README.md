@@ -35,6 +35,7 @@
 ---  
 ### 會被傳遞至`Parser`的`Token`
 * 以下類別中的`Token`在無特殊指定情況下都會在被掃描到的時候輸出一個`Token Message`。
+    * `Token Listing`
 * 往後可以將其直接修改成回傳`Token`的類型給`Parser`。
 ---
 #### 分隔符(Delimiters)
@@ -187,7 +188,7 @@ ___
 
 |Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|
-|**`\"[^\n\"]*((\"\")[^\n\"]*)\"`**|**`<string: {string}>`**|
+|**`\"[^\n\"]*((\"\")[^\n\"]*)*\"`**|**`<string: {string}>`**|
 
 > 例子
 
@@ -196,6 +197,29 @@ ___
 |**`"aa"`**|**`<string: aa>`**|
 |**`"aa""bb"""`**|**`<string: aa"bb">`**|    
 
+```cpp=
+{String}  {
+            // 去除兩側包裹的 "
+            strncat(tempStringBuf, yytext+1, strlen(yytext)-2);
+            
+            // 掃瞄有無跳脫字元 ""
+            int idx=0;
+            while(idx<strlen(tempStringBuf)){
+              strncat(StringBuf, tempStringBuf+idx, 1);
+              
+              // 存在，則跳過第二個 "
+              if(tempStringBuf[idx]=='\"') idx+=2;
+              else idx++;
+            }
+            
+            // Token列出來
+            tokenString(string, StringBuf);
+            
+            // Buffer結尾重定義
+            tempStringBuf[0] = '\0';
+            StringBuf[0] = '\0';
+          }
+```
 ___
 ### 不會被傳遞至Parser的Token
 * 以下的`Token`在被掃瞄到時都不會輸出`Token Message`。
@@ -213,7 +237,7 @@ ___
     |**`[ \t]+`**|NULL|
 
 * **`\n`**
-    * 在讀取到`\n`時，我們需要輸出來源檔案的文本和行號。
+    * 在讀取到`\n`時，我們需要計算行號並視情況輸出來源檔案的文本和行號。
     * 且就算在`Comments`中還是要有同樣的行為。
     * 此項功能受`Pseduocomments`影響，可以透過其決定開啟或關閉。
     
@@ -221,18 +245,62 @@ ___
     |:-:|:-:|
     |**`\n`**|**`{LineNum}: {SourceCode}`**|
     
+    ```cpp=
+    \n      {
+              LIST; // 將掃描到的"\n"押入Buffer中
+              if (Opt_S) 
+                printf("%d: %s", linenum, buf); // 輸出文本和行號
+              linenum++; // 計算行號
+              buf[0] = '\0'; // 重定義Buffer結尾
+            }
+    ```
+    
 ___
 #### 註解(Comments)
 * `C-style`
     * 由`/*`和`*/`兩者包裹文字，有可能大於一行。
     * 注意並不支援`巢狀包裹`，即`/*`永遠與其後第一個`*/`匹配為一組。
+        > 由於這種特性，寫法難度三級跳。
     
     ```cpp=
-    待補
+    "/*" {
+          // 將掃描到的Pattern ""/*" 押入Buffer中
+          LIST;
+          
+          int c1=0;
+          int c2=input(); // 取得下一個字元
+          
+          for(;;){
+            if(c2 == EOF) break ; // 若是EOF退出
+            
+            char str[2]; // 字元轉字串
+            str[0] = c2;
+            str[1] = '\0';
+            strcat(buf, str); // 將讀到的字元押入Buffer中
+                
+            if(c2 == '\n'){ // 若是\n要輸出文本和行號，還有計算行號。
+              if (Opt_S)
+                printf("%d: %s", linenum, buf); // WA : Remove \n
+              linenum++;
+              buf[0] = '\0'; // 重定義Buffer結尾
+            }
+            
+            if(c1 == '*' && c2 == '/') {
+              break; // 掃描到*/，退出
+            }
+            
+            c1 = c2; // 遞移
+            c2 = input(); // 取得下一個字元
+          }
+         }
     ```
+    * 在掃描到`/*`後，便逐步掃描其後的字元。
+    * 若掃描到`EOF`或是 **第一組** `*/`則跳出。
+    * 若掃描到`\n`則必須完成其該有的行為(輸出文本和行號、計算行號)。
     
 * `C++-style`
     * 由`//`起頭，且由`\n`結尾。
+    * 但由於`\n`具有特殊的行為，所以並不包含入`Regular Expression`中。
     
     |Regular Expression|Scanner Message for `Token`|
     |:-:|:-:|
@@ -240,6 +308,33 @@ ___
 
 ___
 #### 偽註解(Pseudocomments)
+* 若註解的開頭為以下四種組合，則對`Scanner`的輸出做特定調整。
+* 和註解相同，其後應跟隨`\n`，但應`\n`有其特殊行為，故不寫入`Regular Expression`中。
+    > 1. `//&S+`
+    > 2. `//&S-`
+    > 3. `//&T+`
+    > 4. `//&T-`
+
+|Regular Expression|Behavior|Meaning|
+|:-:|:-:|:-:|
+|**`"//&S+".*`**|`Opt_S=1`|啟動原始碼文本和行號輸出(預設)|
+|**`"//&S-".*`**|`Opt_S=0`|關閉原始碼文本和行號輸出|
+|**`"//&T+".*`**|`Opt_T=1`|啟動`Token Listing`(預設)|
+|**`"//&T-".*`**|`Opt_T=0`|關閉`Token Listing`|
+
+___
+### 錯誤處理(Error Handling)
+* 若沒有任何`Pattern`可以對應輸入的文本，便須輸出錯誤訊息。
+    > 包含行號與錯誤文字開頭。
+* 在`lex rule`的最後加入以下代碼，以捕捉所有未被`match`的字元(不含`\n`)。 
 ```cpp=
-待補
+.   {
+      /* error */
+      printf("Error at line %d: bad character \"%s\"\n", linenum, yytext );
+      exit(-1);
+    }
 ```
+___
+### 結論(Conclusion)
+* 透過使用`Regular Expression`以及`lex`，我們可以簡單的將輸入文本的代碼轉化成一個個的`Token`。
+* 在往後可以將這些`Token`傳遞至`Parser`中進行語彙分析，使`Compiler`更趨完成。
