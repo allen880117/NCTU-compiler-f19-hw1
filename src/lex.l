@@ -22,7 +22,7 @@ char StringBuf[MAX_LINE_LENG];
 
 %Start COMMENT ONE_LINE_COMMENT STRING
 
-Character [^\n^(\"))]*
+Character [^\n^(\")]*
 String \"{Character}((\"\"){Character})*\"
 
 OperatorMod "mod"
