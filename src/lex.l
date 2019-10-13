@@ -20,7 +20,7 @@ char tempStringBuf[MAX_LINE_LENG];
 char StringBuf[MAX_LINE_LENG];
 %}
 
-%Start COMMENT ONE_LINE_COMMENT STRING
+%Start COMMENT
 
 Character [^\n\"]*
 String \"{Character}((\"\"){Character})*\"
@@ -83,11 +83,36 @@ VariableName [a-zA-Z][0-9a-zA-Z]*
 "//&T-".*     { LIST; Opt_T = 0; }
 "//&T+".*     { LIST; Opt_T = 1; }
 
-"//".*          { LIST; }
-"/*".*          { LIST; BEGIN COMMENT; }
-<COMMENT>.*"*/" { LIST; BEGIN INITIAL; }
-<COMMENT>.*     { LIST; }
-
+"//".*  { LIST; }
+"/*"    {
+          LIST;
+          
+          int c1;
+          int c2=input();
+          
+          for(;;){
+            if(c2 == EOF) break ;
+            
+            char str[2];
+            str[0] = c2;
+            str[1] = '\0';
+            strcat(buf, str);
+                
+            if(c2 == '\n'){
+              if (Opt_S)
+                printf("%d: %s", linenum, buf); // WA : Remove \n
+              linenum++;
+              buf[0] = '\0';
+            }
+            
+            if(c1 == '*' && c2 == '/') {
+              break;
+            }
+            
+            c1 = c2;
+            c2 = input();
+          }
+        }
              
 {KWarray}   { token(KWarray); }
 {KWbegin}   { token(KWbegin); }
