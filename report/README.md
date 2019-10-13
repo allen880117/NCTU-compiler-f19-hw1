@@ -120,7 +120,7 @@
 
     |Regular Expression|Scanner Message for `Token`|
     |:-:|:-:|
-    |**`([1-9][0-9]*)|(0)`**|**`<intger: {decimal_intger}>`**|
+    |**`([1-9][0-9]*)\|(0)`**|**`<intger: {decimal_intger}>`**|
 
     > 例子
 
@@ -153,7 +153,7 @@
 
 |Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|
-|**`({Dec_Int}\.[0-9]*[1-9])|({Dec_int}\.0)`**|**`<float: {float}>`**|
+|**`({Dec_Int}\.[0-9]*[1-9])\|({Dec_int}\.0)`**|**`<float: {float}>`**|
 
 > 例子
 
@@ -170,7 +170,7 @@
 
 |Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|
-|**`({Dec_Int}|{Float})[Ee][+|-]?{Dec_Int}`**|**`<scientific: {scientific}>`**|
+|**`({Dec_Int}\|{Float})[Ee][+\|-]?{Dec_Int}`**|**`<scientific: {scientific}>`**|
 
 > 例子
 
