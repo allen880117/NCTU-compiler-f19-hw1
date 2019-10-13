@@ -87,7 +87,7 @@ VariableName [a-zA-Z][0-9a-zA-Z]*
 "/*"    {
           LIST;
           
-          int c1;
+          int c1=0;
           int c2=input();
           
           for(;;){
