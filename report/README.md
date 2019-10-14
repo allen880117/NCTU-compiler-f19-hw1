@@ -371,4 +371,4 @@ ___
 ___
 ### 結論(Conclusion)
 * 透過使用`Regular Expression`以及`lex`，我們可以簡單的將輸入文本的代碼轉化成一個個的`Token`。
-* 在往後可以將這些`Token`傳遞至`Parser`中進行語彙分析，使`Compiler`更趨完成。
+* 在往後可以將這些`Token`傳遞至`Parser`中進行語彙分析，使`Compiler`離完成更進一步。
