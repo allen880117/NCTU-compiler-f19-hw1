@@ -62,7 +62,7 @@ VariableName [a-zA-Z][0-9a-zA-Z]*
 
 %%
 
-{String}  {
+<INITIAL>{String}  {
             strncat(tempStringBuf, yytext+1, strlen(yytext)-2);
             
             int idx=0;
@@ -78,95 +78,70 @@ VariableName [a-zA-Z][0-9a-zA-Z]*
             StringBuf[0] = '\0';
           }
 
-"//&S-".*     { LIST; Opt_S = 0; } 
-"//&S+".*     { LIST; Opt_S = 1; }
-"//&T-".*     { LIST; Opt_T = 0; }
-"//&T+".*     { LIST; Opt_T = 1; }
+<INITIAL>"//&S-".*     { LIST; Opt_S = 0; } 
+<INITIAL>"//&S+".*     { LIST; Opt_S = 1; }
+<INITIAL>"//&T-".*     { LIST; Opt_T = 0; }
+<INITIAL>"//&T+".*     { LIST; Opt_T = 1; }
 
-"//".*  { LIST; }
-"/*"    {
-          LIST;
-          
-          int c1=0;
-          int c2=input();
-          
-          for(;;){
-            if(c2 == EOF) break ;
-            
-            char str[2];
-            str[0] = c2;
-            str[1] = '\0';
-            strcat(buf, str);
-                
-            if(c2 == '\n'){
-              if (Opt_S)
-                printf("%d: %s", linenum, buf); // WA : Remove \n
-              linenum++;
-              buf[0] = '\0';
-            }
-            
-            if(c1 == '*' && c2 == '/') {
-              break;
-            }
-            
-            c1 = c2;
-            c2 = input();
-          }
-        }
+<INITIAL>"//".*  { LIST; }
+
+<INITIAL>"/*"  { LIST; BEGIN COMMENT; }
+<COMMENT>"*/"  {LIST; BEGIN INITIAL; }
+<COMMENT>.     {LIST; }
              
-{KWarray}   { token(KWarray); }
-{KWbegin}   { token(KWbegin); }
-{KWboolean} { token(KWboolean); }
-{KWdef}     { token(KWdef); }
-{KWdo}      { token(KWdo); }
-{KWelse}    { token(KWelse); }
-{KWend}     { token(KWend); }
-{KWfalse}   { token(KWfalse); }
-{KWfor}     { token(KWfor); }
-{KWinteger} { token(KWinteger); }
-{KWif}      { token(KWif); }
-{KWof}      { token(KWof); }
-{KWprint}   { token(KWprint); }
-{KWread}    { token(KWread); }
-{KWreal}    { token(KWreal); }
-{KWstring}  { token(KWstring); }
-{KWthen}    { token(KWthen); }
-{KWto}      { token(KWto); }
-{KWtrue}    { token(KWtrue); }
-{KWreturn}  { token(KWreturn); }
-{KWvar}     { token(KWvar); }
-{KWwhile}   { token(KWwhile); }
+<INITIAL>{KWarray}   { token(KWarray); }
+<INITIAL>{KWbegin}   { token(KWbegin); }
+<INITIAL>{KWboolean} { token(KWboolean); }
+<INITIAL>{KWdef}     { token(KWdef); }
+<INITIAL>{KWdo}      { token(KWdo); }
+<INITIAL>{KWelse}    { token(KWelse); }
+<INITIAL>{KWend}     { token(KWend); }
+<INITIAL>{KWfalse}   { token(KWfalse); }
+<INITIAL>{KWfor}     { token(KWfor); }
+<INITIAL>{KWinteger} { token(KWinteger); }
+<INITIAL>{KWif}      { token(KWif); }
+<INITIAL>{KWof}      { token(KWof); }
+<INITIAL>{KWprint}   { token(KWprint); }
+<INITIAL>{KWread}    { token(KWread); }
+<INITIAL>{KWreal}    { token(KWreal); }
+<INITIAL>{KWstring}  { token(KWstring); }
+<INITIAL>{KWthen}    { token(KWthen); }
+<INITIAL>{KWto}      { token(KWto); }
+<INITIAL>{KWtrue}    { token(KWtrue); }
+<INITIAL>{KWreturn}  { token(KWreturn); }
+<INITIAL>{KWvar}     { token(KWvar); }
+<INITIAL>{KWwhile}   { token(KWwhile); }
 
-{OperatorMod}      { token(mod);}
-{OperatorAnd}      { token(and);}
-{OperatorOr}       { token(or); }
-{OperatorNot}      { token(not);}
+<INITIAL>{OperatorMod}      { token(mod);}
+<INITIAL>{OperatorAnd}      { token(and);}
+<INITIAL>{OperatorOr}       { token(or); }
+<INITIAL>{OperatorNot}      { token(not);}
 
-{VariableName} { tokenString(id, yytext); }
+<INITIAL>{VariableName} { tokenString(id, yytext); }
 
-{NumScientific} { tokenString(scientific, yytext); } // scientific
-{NumFloat}      { tokenString(float, yytext); } // float first
-{NumInteger}    { tokenString(integer, yytext); } // integer follow
-{NumOctInteger} { tokenString(oct_integer, yytext); } 
+<INITIAL>{NumScientific} { tokenString(scientific, yytext); } // scientific
+<INITIAL>{NumFloat}      { tokenString(float, yytext); } // float first
+<INITIAL>{NumInteger}    { tokenString(integer, yytext); } // integer follow
+<INITIAL>{NumOctInteger} { tokenString(oct_integer, yytext); } 
 
-"+"         { tokenChar('+');  } // Should After Scientific Notations
-"-"         { tokenChar('-');  }
-"*"         { tokenChar('*');  } // Should After Comment 
-"/"         { tokenChar('/');  } // Should After Comment 
-":="        { token(:=); }
-"<="        { token(<=); } // Should Before < and =
-"<>"        { token(<>); } // Should Before < and >
-">="        { token(>=); }
-"<"         { tokenChar('<');  }
-">"         { tokenChar('>');  }
-"="         { tokenChar('=');  }
-","         { tokenChar(','); }
-";"         { tokenChar(';'); }
-":"         { tokenChar(':'); }
-"("         { tokenChar('('); }
-")"         { tokenChar(')'); }
-"["         { tokenChar('['); }
-"]"         { tokenChar(']'); }
+<INITIAL>"+"         { tokenChar('+');  } // Should After Scientific Notations
+<INITIAL>"-"         { tokenChar('-');  }
+<INITIAL>"*"         { tokenChar('*');  } // Should After Comment 
+<INITIAL>"/"         { tokenChar('/');  } // Should After Comment 
+<INITIAL>":="        { token(:=); }
+<INITIAL>"<="        { token(<=); } // Should Before < and =
+<INITIAL>"<>"        { token(<>); } // Should Before < and >
+<INITIAL>">="        { token(>=); }
+<INITIAL>"<"         { tokenChar('<');  }
+<INITIAL>">"         { tokenChar('>');  }
+<INITIAL>"="         { tokenChar('=');  }
+<INITIAL>","         { tokenChar(','); }
+<INITIAL>";"         { tokenChar(';'); }
+<INITIAL>":"         { tokenChar(':'); }
+<INITIAL>"("         { tokenChar('('); }
+<INITIAL>")"         { tokenChar(')'); }
+<INITIAL>"["         { tokenChar('['); }
+<INITIAL>"]"         { tokenChar(']'); }
 
 <COMMENT>\n |
 \n          {
