@@ -260,42 +260,22 @@ ___
 * `C-style`
     * 由`/*`和`*/`兩者包裹文字，有可能大於一行。
     * 注意並不支援`巢狀包裹`，即`/*`永遠與其後第一個`*/`匹配為一組。
-        > 由於這種特性，寫法難度三級跳。
+        
+        > 由於這種特性，我們引入`STATE`的觀念。
+        > 
     
     ```cpp=
-    "/*" {
-          // 將掃描到的Pattern ""/*" 押入Buffer中
-          LIST;
-          
-          int c1=0;
-          int c2=input(); // 取得下一個字元
-          
-          for(;;){
-            if(c2 == EOF) break ; // 若是EOF退出
-            
-            char str[2]; // 字元轉字串
-            str[0] = c2;
-            str[1] = '\0';
-            strcat(buf, str); // 將讀到的字元押入Buffer中
-                
-            if(c2 == '\n'){ // 若是\n要輸出文本和行號，還有計算行號。
-              if (Opt_S)
-                printf("%d: %s", linenum, buf); // WA : Remove \n
-              linenum++;
-              buf[0] = '\0'; // 重定義Buffer結尾
-            }
-            
-            if(c1 == '*' && c2 == '/') {
-              break; // 掃描到*/，退出
-            }
-            
-            c1 = c2; // 遞移
-            c2 = input(); // 取得下一個字元
-          }
-         }
+    <INITIAL>"/*"  {LIST; BEGIN COMMENT; }
+    <COMMENT>"*/"  {LIST; BEGIN INITIAL; }
+    <COMMENT>.     {LIST; }
+    
+    <COMMENT>\n |
+    \n          {
+                    ...
+                }
     ```
     * 在掃描到`/*`後，便逐步掃描其後的字元。
-    * 若掃描到`EOF`或是 **第一組** `*/`則跳出。
+    * 若掃描到 **第一組** `*/`則跳出。
     * 若掃描到`\n`則必須完成其該有的行為(輸出文本和行號、計算行號)。
     
 * `C++-style`
