@@ -32,13 +32,41 @@
     > 2. Comments
     > 3. Pseudocomments
 * 請注意 **`大小寫`** 是有區分的
----  
+--- 
+### `STATE`
+* 為了不同情況下的讀入，我們可能需要開關某些規則。
+* 為此我們導入`STATE`的觀念。
+* 本次作業中主要使用的有以下幾種：
+    > 1. `<INITIAL>` (預設)
+    > 2. `<COMMENT>`
+* `<INITIAL>`為掃描開始時就會進入的STATE。
+* `<COMMENT>` 是為了`C-Style`的`Comments`所設計的。
+    > * 可以避免某些在`<INITIAL>`會啟動的規則。
+* 若並未強調此規則在某一`STATE`啟動，則此規則為常態啟動，不論何時都可以進行`Match`
+    ```cpp=
+    {REGULAR_EXPRESSION}    {ACTION;}     
+    ```
+    
+* 若強調此規則為`<INITIAL>`啟動，則一離開`<INITIAL>`此規則便會失效。
+    * 翻之若回到`<INITIAL>`，則此規則又會再啟動。
+    ```cpp=
+    <INITIAL>{REGULAR_EXPRESSION}    {ACTION;}
+    ```
+    
+* 若強調此規則為`<COMMENT>`啟動，則一離開`<COMMENT>`此規則便會失效。
+    * 翻之若回到`<COMMENT>`，則此規則又會再啟動。
+    ```cpp=
+    <COMMENT>{REGULAR_EXPRESSION}    {ACTION;}   
+    ```
+
+___
 ### 會被傳遞至`Parser`的`Token`
 * 以下類別中的`Token`在無特殊指定情況下都會在被掃描到的時候輸出一個`Token Message`。
     * `Token Listing`
 * 往後可以將其直接修改成回傳`Token`的類型給`Parser`。
 ---
 #### 分隔符(Delimiters)
+> `<INITIAL>`
 
 ||Delimiter|Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|:-:|:-:|
@@ -50,6 +78,7 @@
 ---
 
 #### 算數、關係、邏輯運算子(Arithmetic, Relational, and Logical Operaters)
+> `<INITIAL>`
 
 ||Operator|Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|:-:|:-:|
@@ -66,6 +95,7 @@
 
 ---
 #### 關鍵字(Keywords)
+> `<INITIAL>`
 
 |Keyword|Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|:-:|
@@ -96,8 +126,13 @@
 
 ---
 #### 識別字(Identifiers)
+> `<INITIAL>`
+
 * 識別字(Identifier)是一串由字母和數字構成的字串，且必定由字母開頭。
-* 由於識別字的定義十分廣闊，可能和`Keywords`或一些`Operators`衝突，所以必須將其規則放置在較後方。
+* 由於識別字的定義十分廣闊，可能和`Keywords`或一些`Operators`衝突。
+    * 所以必須將其規則放置在較後方。
+* 若沒加入`STATE`的機制，有可能和`C-Style Comments`衝突。
+    * 所以需要明確指定其所屬`STATE`且此`STATE`不是`<COMMENT>`。
 
 |Regular Expression|Scanner Message for `Token`|
 |:-:|:-:|
@@ -111,6 +146,8 @@
 
 ---
 #### 整數常數(Integer Constants)
+> `<INITIAL>`
+
 * 由一連串數字構成。
     * 若由`0`開頭且跟隨其他數字，則假設為`八進位(octal)`
     * 其餘則假設為`十進位(decimal)`
@@ -147,6 +184,8 @@
     
 ---
 #### 浮點數常數(Float-Point Constants)
+> `<INITIAL>`
+
 * 由`.`符號前後分割為整數和小數兩部分。
     * 整數部分只接受 **十進位整數** (參閱 **整數常數** )
     * 小數部分接受一連串數字，且不包含多餘`0`
@@ -165,6 +204,8 @@
 
 ---
 #### 科學記號(Scientific Notations)
+> `<INITIAL>`
+
 * 形式為`aeb`,`aEb`,`ae+b`,`ae-b`,`aE+b`,`aE-b`以上六種。
     * `a`可為 **十進位整數** 或 **浮點數**。
     * `b`可為 **十進位整數** 。
@@ -182,6 +223,8 @@
 
 ___
 #### 字串常數(String Constants)
+> `<INITIAL>`
+
 * 由零或多個`ASCII`字元組成，且被`"`前後包裹住。
 * 其中不可包含`\n`。
 * 其中唯一的跳脫字元組是`""`，其將被轉譯成`"`。
@@ -227,6 +270,8 @@ ___
 
 ---
 #### 空白(Whitespace)
+> `常態啟動，無特定所屬STATE`
+
 * 一連串的`(space)`, `\t`, `\n`。
 * 但是`\n`有些特殊動作需要輸出，故分開處理。
 
@@ -258,11 +303,15 @@ ___
 ___
 #### 註解(Comments)
 * `C-style`
+* > `<COMMENT>`
     * 由`/*`和`*/`兩者包裹文字，有可能大於一行。
     * 注意並不支援`巢狀包裹`，即`/*`永遠與其後第一個`*/`匹配為一組。
         
-        > 由於這種特性，我們引入`STATE`的觀念。
-        > 
+        > * 由於這種特性，我們引入`STATE`的觀念。
+        > * 在`<INITIAL>`取得`/*`後便進入`<COMMENT>`。
+        > * 使用`.`而非`.*`是為了避免因`Longest Match`而多吃了`*/`。
+        > * 若沒有將`STATE`和其他諸如`Identifiers`的`STATE`區隔開來，則有可能因為`Longest Match`而將`C-Style Comments`中的文字誤判成別種`Token`。
+        > * 所以`Identifers`一類的規則都要明確指定其`STATE`為`<INITIAL>`，而不是任其常態啟動。
     
     ```cpp=
     <INITIAL>"/*"  {LIST; BEGIN COMMENT; }
@@ -279,6 +328,7 @@ ___
     * 若掃描到`\n`則必須完成其該有的行為(輸出文本和行號、計算行號)。
     
 * `C++-style`
+* > `<INITIAL>`
     * 由`//`起頭，且由`\n`結尾。
     * 但由於`\n`具有特殊的行為，所以並不包含入`Regular Expression`中。
     
@@ -288,6 +338,8 @@ ___
 
 ___
 #### 偽註解(Pseudocomments)
+> `<INITIAL>`
+
 * 若註解的開頭為以下四種組合，則對`Scanner`的輸出做特定調整。
 * 和註解相同，其後應跟隨`\n`，但應`\n`有其特殊行為，故不寫入`Regular Expression`中。
     > 1. `//&S+`
@@ -304,6 +356,8 @@ ___
 
 ___
 ### 錯誤處理(Error Handling)
+> `常態啟動，無特定所屬STATE`
+
 * 若沒有任何`Pattern`可以對應輸入的文本，便須輸出錯誤訊息。
     > 包含行號與錯誤文字開頭。
 * 在`lex rule`的最後加入以下代碼，以捕捉所有未被`match`的字元(不含`\n`)。 
