@@ -48,13 +48,13 @@
     ```
     
 * 若強調此規則為`<INITIAL>`啟動，則一離開`<INITIAL>`此規則便會失效。
-    * 翻之若回到`<INITIAL>`，則此規則又會再啟動。
+    * 反之若回到`<INITIAL>`，則此規則又會再啟動。
     ```cpp=
     <INITIAL>{REGULAR_EXPRESSION}    {ACTION;}
     ```
     
 * 若強調此規則為`<COMMENT>`啟動，則一離開`<COMMENT>`此規則便會失效。
-    * 翻之若回到`<COMMENT>`，則此規則又會再啟動。
+    * 反之若回到`<COMMENT>`，則此規則又會再啟動。
     ```cpp=
     <COMMENT>{REGULAR_EXPRESSION}    {ACTION;}   
     ```
