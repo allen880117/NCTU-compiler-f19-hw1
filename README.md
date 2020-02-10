@@ -1,5 +1,8 @@
 # Project Assignment 1 - Lexical Definition
 
+|:warning: **Do not plagiarize my work or you will be graded ZERO !**|
+|-|
+
 **Introduction to Compiler Design by Prof. Yi-Ping You**
 
 Due Date: **23:59, October 16, 2019**
